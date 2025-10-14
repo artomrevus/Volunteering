@@ -1,0 +1,109 @@
+﻿version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - microservices-network
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - microservices-network
+  
+  auth-api:
+    build:
+      context: .
+      dockerfile: ./Auth/Auth.API/Dockerfile
+    container_name: auth-api
+    ports:
+      - "5001:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoDbSettings__DatabaseName=VolunteeringDb
+    depends_on:
+      - mongodb
+    networks:
+      - microservices-network
+  
+  tasks-api:
+    build:
+      context: .
+      dockerfile: ./Tasks/Tasks.API/Dockerfile
+    container_name: tasks-api
+    ports:
+      - "5002:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoDbSettings__DatabaseName=VolunteeringDb
+      - RabbitSettings__HostName=rabbitmq
+      - RabbitSettings__Port=5672
+      - RabbitSettings__UserName=guest
+      - RabbitSettings__Password=guest
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - microservices-network
+  
+  notifications-api:
+    build:
+      context: .
+      dockerfile: ./Notifications/Notifications.API/Dockerfile
+    container_name: notifications-api
+    ports:
+      - "5003:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoDbSettings__DatabaseName=VolunteeringDb
+      - RabbitSettings__HostName=rabbitmq
+      - RabbitSettings__Port=5672
+      - RabbitSettings__UserName=guest
+      - RabbitSettings__Password=guest
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - microservices-network
+  
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./Gateway/Gateway.API/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "5010:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    depends_on:
+      - auth-api
+      - tasks-api
+      - notifications-api
+    networks:
+      - microservices-network
+
+volumes:
+  mongodb_data:
+  rabbitmq_data:
+
+networks:
+  microservices-network:
+    driver: bridge
