@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var app = builder
     .AddLogging()
+    .AddOpenTelemetry()
     .AddAuth()
     .AddControllers()
     .AddSwagger()

@@ -2,6 +2,10 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Events;
 using Tasks.API.Filters;
@@ -84,6 +88,7 @@ public static class BuilderExtensions
                 collectionName: "Logs",
                 restrictedToMinimumLevel: LogEventLevel.Information
             )
+            .WriteTo.OpenTelemetry()
             .CreateLogger();
         
         builder.Host.UseSerilog();
@@ -109,6 +114,29 @@ public static class BuilderExtensions
             });
 
         builder.Services.AddAuthorization();
+        
+        return builder;
+    }
+    
+    public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddOpenTelemetry()
+            .ConfigureResource(resource => resource.AddService(builder.Configuration["OTEL_SERVICE_NAME"]!))
+            .WithMetrics(tracing => tracing
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddOtlpExporter()
+            )
+            .WithTracing(tracing => tracing
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation()
+                .AddOtlpExporter()
+            );
+
+        builder.Logging.AddOpenTelemetry(logging => logging
+            .AddOtlpExporter()
+        );
         
         return builder;
     }

@@ -1,6 +1,14 @@
 ﻿version: '3.8'
 
 services:
+  telemetry-dashboard:
+    image: mcr.microsoft.com/dotnet/nightly/aspire-dashboard:latest
+    container_name: telemetry-dashboard
+    ports:
+      - "18888:18888"
+    networks:
+      - microservices-network
+
   mongodb:
     image: mongo:latest
     container_name: mongodb
@@ -34,8 +42,11 @@ services:
       - ASPNETCORE_URLS=http://+:80
       - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
       - MongoDbSettings__DatabaseName=VolunteeringDb
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://telemetry-dashboard:18889
+      - OTEL_SERVICE_NAME=auth-api
     depends_on:
       - mongodb
+      - telemetry-dashboard
     networks:
       - microservices-network
   
@@ -55,9 +66,12 @@ services:
       - RabbitSettings__Port=5672
       - RabbitSettings__UserName=guest
       - RabbitSettings__Password=guest
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://telemetry-dashboard:18889
+      - OTEL_SERVICE_NAME=tasks-api
     depends_on:
       - mongodb
       - rabbitmq
+      - telemetry-dashboard
     networks:
       - microservices-network
   
@@ -77,9 +91,12 @@ services:
       - RabbitSettings__Port=5672
       - RabbitSettings__UserName=guest
       - RabbitSettings__Password=guest
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://telemetry-dashboard:18889
+      - OTEL_SERVICE_NAME=notifications-api
     depends_on:
       - mongodb
       - rabbitmq
+      - telemetry-dashboard
     networks:
       - microservices-network
   
@@ -93,10 +110,16 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
+      - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoDbSettings__DatabaseName=VolunteeringDb
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://telemetry-dashboard:18889
+      - OTEL_SERVICE_NAME=api-gateway
     depends_on:
+      - mongodb
       - auth-api
       - tasks-api
       - notifications-api
+      - telemetry-dashboard
     networks:
       - microservices-network
 

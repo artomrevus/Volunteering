@@ -1,22 +1,14 @@
-using Ocelot.DependencyInjection;
+using Gateway.API.Extensions;
 using Ocelot.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
-
-builder.Services.AddOcelot();
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policyBuilder => policyBuilder
-        .AllowAnyOrigin()
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-    );
-});
-
-var app = builder.Build();
+var app = builder
+    .AddOcelot()
+    .AddCors()
+    .AddLogging()
+    .AddOpenTelemetry()
+    .Build();
 
 // ------------------------------------
 // Configure the HTTP request pipeline:
