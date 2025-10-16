@@ -4,6 +4,7 @@ using Tasks.Application.Dtos;
 using Tasks.Application.Dtos.Messages;
 using Tasks.Application.Exceptions;
 using Tasks.Application.Interfaces;
+using Tasks.Application.Interfaces.Clients;
 using Tasks.Application.Interfaces.Queues;
 using Tasks.Application.Interfaces.Repositories;
 using Tasks.Application.Mappers;
@@ -13,6 +14,7 @@ namespace Tasks.Application.Commands.Handlers;
 public class ConfirmTaskCommandHandler(
     ITasksRepository repository,
     ITasksQueueSender queueSender,
+    INotificationsMicroserviceClient notificationsClient,
     ILogger<ConfirmTaskCommandHandler> logger) 
     : IRequestHandler<ConfirmTaskCommand, TaskDto>
 {
@@ -42,13 +44,14 @@ public class ConfirmTaskCommandHandler(
         task.Confirm();
         await repository.UpdateAsync(task);
         
-        var message = new TaskConfirmedMessage
+        var message = new TaskConfirmedMessageDto
         {
             VolunteerToNotifyId = task.VolunteerId!,
             TaskTitle = task.Title,
         };
         
-        await queueSender.SendTaskConfirmedMessageAsync(message);
+        //await queueSender.SendTaskConfirmedMessageAsync(message);
+        await notificationsClient.SendTaskConfirmedNotificationAsync(message);
         
         logger.LogInformation(
             "Task with id '{TaskId}' for military with id '{MilitaryId}' was confirmed successfully", 

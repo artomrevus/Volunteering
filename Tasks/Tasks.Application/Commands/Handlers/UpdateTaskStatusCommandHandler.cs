@@ -4,6 +4,7 @@ using Tasks.Application.Dtos;
 using Tasks.Application.Dtos.Messages;
 using Tasks.Application.Exceptions;
 using Tasks.Application.Interfaces;
+using Tasks.Application.Interfaces.Clients;
 using Tasks.Application.Interfaces.Queues;
 using Tasks.Application.Interfaces.Repositories;
 using Tasks.Application.Mappers;
@@ -14,6 +15,7 @@ namespace Tasks.Application.Commands.Handlers;
 public class UpdateTaskStatusCommandHandler(
     ITasksRepository repository,
     ITasksQueueSender queueSender,
+    INotificationsMicroserviceClient notificationsClient,
     ILogger<UpdateTaskStatusCommandHandler> logger) 
     : IRequestHandler<UpdateTaskStatusCommand, TaskDto>
 {
@@ -45,7 +47,7 @@ public class UpdateTaskStatusCommandHandler(
         task.UpdateStatus(request.Status);
         await repository.UpdateAsync(task);
 
-        var message = new TaskStatusUpdatedMessage
+        var message = new TaskStatusUpdatedMessageDto
         {
             MilitaryToNotifyId = task.MilitaryId,
             TaskTitle = task.Title,
@@ -54,6 +56,7 @@ public class UpdateTaskStatusCommandHandler(
         };
         
         await queueSender.SendTaskStatusUpdatedMessageAsync(message);
+        //await notificationsClient.SendTaskStatusUpdatedNotificationAsync(message);
             
         logger.LogInformation(
             "Task with id '{TaskId}' for military with id '{MilitaryId}' status was updated to '{TaskStatus}' successfully", 

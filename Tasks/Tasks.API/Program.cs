@@ -19,6 +19,7 @@ var app = builder
     .AddMediator()
     .AddDbServices()
     .AddQueueServices()
+    .AddHttpClients()
     .Build();
 
 // Configure the HTTP request pipeline.

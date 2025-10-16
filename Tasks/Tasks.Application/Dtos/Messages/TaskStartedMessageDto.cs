@@ -1,6 +1,6 @@
-namespace Notifications.Application.Dtos.Messages;
+namespace Tasks.Application.Dtos.Messages;
 
-public class TaskStartedMessage
+public class TaskStartedMessageDto
 {
     public string MilitaryToNotifyId { get; init; } = null!;
     

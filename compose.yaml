@@ -68,10 +68,12 @@ services:
       - RabbitSettings__Password=guest
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://telemetry-dashboard:18889
       - OTEL_SERVICE_NAME=tasks-api
+      - Microservices__Notifications__BaseUrl=http://notifications-api:80
     depends_on:
       - mongodb
       - rabbitmq
       - telemetry-dashboard
+      - notifications-api
     networks:
       - microservices-network
   

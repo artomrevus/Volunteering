@@ -6,17 +6,20 @@ using Notifications.Domain.Entities;
 
 namespace Notifications.Application.Commands.Handlers;
 
-public class SendEmailCommandHandler(
+public class SendTaskStatusUpdatedEmailCommandHandler(
     IEmailSender emailSender,
-    ILogger<SendEmailCommandHandler> logger)
-    : IRequestHandler<SendEmailCommand>
+    ILogger<SendTaskStatusUpdatedEmailCommandHandler> logger)
+    : IRequestHandler<SendTaskStatusUpdatedEmailCommand>
 {
-    public async Task Handle(SendEmailCommand request, CancellationToken cancellationToken)
+    public async Task Handle(SendTaskStatusUpdatedEmailCommand request, CancellationToken cancellationToken)
     {
-        var emailMessage = new EmailMessageEntity(
-            request.EmailTo,
-            request.Subject,
-            request.Body);
+        const string subject = "Task status updated";
+        var body = 
+            $"Your task \"{request.TaskTitle}\" status was updated by volunteer.\n\n" +
+            $"{request.OldTaskStatus} -> {request.NewTaskStatus}\n\n" +
+            $"You can view detailed information in your profile: https://volunteering-frontend";
+        
+        var emailMessage = new EmailMessageEntity(request.EmailTo, subject, body);
 
         if (!await emailSender.SendAsync(emailMessage))
         {

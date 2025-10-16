@@ -1,6 +1,6 @@
-namespace Tasks.Application.Dtos.Messages;
+namespace Notifications.Application.Dtos.Messages;
 
-public class TaskConfirmedMessage
+public class TaskConfirmedMessageDto
 {
     public string VolunteerToNotifyId { get; init; } = null!;
     

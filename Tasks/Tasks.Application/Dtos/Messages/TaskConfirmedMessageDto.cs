@@ -1,8 +1,8 @@
 namespace Tasks.Application.Dtos.Messages;
 
-public class TaskStartedMessage
+public class TaskConfirmedMessageDto
 {
-    public string MilitaryToNotifyId { get; init; } = null!;
+    public string VolunteerToNotifyId { get; init; } = null!;
     
     public string TaskTitle { get; init; } = null!;
 }

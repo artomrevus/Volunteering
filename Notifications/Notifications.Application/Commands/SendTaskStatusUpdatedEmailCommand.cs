@@ -1,8 +1,10 @@
-namespace Notifications.Application.Dtos.Messages;
+using MediatR;
 
-public class TaskStatusUpdatedMessage
+namespace Notifications.Application.Commands;
+
+public class SendTaskStatusUpdatedEmailCommand : IRequest
 {
-    public string MilitaryToNotifyId { get; init; } = null!;
+    public string EmailTo { get; init; } = null!;
     
     public string TaskTitle { get; init; } = null!;
     

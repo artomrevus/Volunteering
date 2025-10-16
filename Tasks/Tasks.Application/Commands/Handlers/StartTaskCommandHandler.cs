@@ -3,17 +3,17 @@ using Microsoft.Extensions.Logging;
 using Tasks.Application.Dtos;
 using Tasks.Application.Dtos.Messages;
 using Tasks.Application.Exceptions;
-using Tasks.Application.Interfaces;
+using Tasks.Application.Interfaces.Clients;
 using Tasks.Application.Interfaces.Queues;
 using Tasks.Application.Interfaces.Repositories;
 using Tasks.Application.Mappers;
-using Tasks.Domain.Entities;
 
 namespace Tasks.Application.Commands.Handlers;
 
 public class StartTaskCommandHandler(
     ITasksRepository repository,
     ITasksQueueSender queueSender,
+    INotificationsMicroserviceClient notificationsClient,
     ILogger<StartTaskCommandHandler> logger)
     : IRequestHandler<StartTaskCommand, TaskDto>
 {
@@ -32,13 +32,14 @@ public class StartTaskCommandHandler(
         task.Start(request.VolunteerId);
         await repository.UpdateAsync(task);
 
-        var message = new TaskStartedMessage
+        var message = new TaskStartedMessageDto
         {
             MilitaryToNotifyId = task.MilitaryId,
             TaskTitle = task.Title,
         };
         
-        await queueSender.SendTaskStartedMessageAsync(message);
+        //await queueSender.SendTaskStartedMessageAsync(message);
+        await notificationsClient.SendTaskStartedNotificationAsync(message);
         
         logger.LogInformation(
             "Task with id '{TaskId}' for military with id '{MilitaryId}' was started successfully", 

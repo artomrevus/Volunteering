@@ -16,9 +16,9 @@ public class TasksQueueConsumer(IOptions<RabbitSettings> rabbitSettings) : ITask
     private IChannel? _channel;
     private string? _consumerTag;
     
-    public Func<TaskStartedMessage, Task>? HandleTaskStartedAsync { get; set; }
-    public Func<TaskStatusUpdatedMessage, Task>? HandleTaskStatusUpdatedAsync { get; set; }
-    public Func<TaskConfirmedMessage, Task>? HandleTaskConfirmedAsync { get; set; }
+    public Func<TaskStartedMessageDto, Task>? HandleTaskStartedAsync { get; set; }
+    public Func<TaskStatusUpdatedMessageDto, Task>? HandleTaskStatusUpdatedAsync { get; set; }
+    public Func<TaskConfirmedMessageDto, Task>? HandleTaskConfirmedAsync { get; set; }
 
     public async Task StartConsumingAsync(CancellationToken cancellationToken)
     {
@@ -146,16 +146,16 @@ public class TasksQueueConsumer(IOptions<RabbitSettings> rabbitSettings) : ITask
     
     private async Task ProcessTaskStartedMessageAsync(string message)
     {
-        var taskStartedMessage = JsonSerializer.Deserialize<TaskStartedMessage>(message);
+        var taskStartedMessage = JsonSerializer.Deserialize<TaskStartedMessageDto>(message);
         
         if (taskStartedMessage is null)
         {
-            throw new InvalidOperationException($"Cannot deserialize message of type '{nameof(TaskStartedMessage)}'");
+            throw new InvalidOperationException($"Cannot deserialize message of type '{nameof(TaskStartedMessageDto)}'");
         }
         
         if (HandleTaskStartedAsync is null)
         {
-            throw new InvalidOperationException($"Cannot handle message of type '{nameof(TaskStartedMessage)}'");
+            throw new InvalidOperationException($"Cannot handle message of type '{nameof(TaskStartedMessageDto)}'");
         }
         
         await HandleTaskStartedAsync.Invoke(taskStartedMessage);
@@ -163,16 +163,16 @@ public class TasksQueueConsumer(IOptions<RabbitSettings> rabbitSettings) : ITask
     
     private async Task ProcessTaskStatusUpdatedMessageAsync(string message)
     {
-        var taskStatusUpdatedMessage = JsonSerializer.Deserialize<TaskStatusUpdatedMessage>(message);
+        var taskStatusUpdatedMessage = JsonSerializer.Deserialize<TaskStatusUpdatedMessageDto>(message);
         
         if (taskStatusUpdatedMessage is null)
         {
-            throw new InvalidOperationException($"Cannot deserialize message of type '{nameof(TaskStatusUpdatedMessage)}'");
+            throw new InvalidOperationException($"Cannot deserialize message of type '{nameof(TaskStatusUpdatedMessageDto)}'");
         }
         
         if (HandleTaskStatusUpdatedAsync is null)
         {
-            throw new InvalidOperationException($"Cannot handle message of type '{nameof(TaskStatusUpdatedMessage)}'");
+            throw new InvalidOperationException($"Cannot handle message of type '{nameof(TaskStatusUpdatedMessageDto)}'");
         }
         
         await HandleTaskStatusUpdatedAsync.Invoke(taskStatusUpdatedMessage);
@@ -180,16 +180,16 @@ public class TasksQueueConsumer(IOptions<RabbitSettings> rabbitSettings) : ITask
     
     private async Task ProcessTaskConfirmedMessageAsync(string message)
     {
-        var taskConfirmedMessage = JsonSerializer.Deserialize<TaskConfirmedMessage>(message);
+        var taskConfirmedMessage = JsonSerializer.Deserialize<TaskConfirmedMessageDto>(message);
         
         if (taskConfirmedMessage is null)
         {
-            throw new InvalidOperationException($"Cannot deserialize message of type '{nameof(TaskConfirmedMessage)}'");
+            throw new InvalidOperationException($"Cannot deserialize message of type '{nameof(TaskConfirmedMessageDto)}'");
         }
         
         if (HandleTaskConfirmedAsync is null)
         {
-            throw new InvalidOperationException($"Cannot handle message of type '{nameof(TaskConfirmedMessage)}'");
+            throw new InvalidOperationException($"Cannot handle message of type '{nameof(TaskConfirmedMessageDto)}'");
         }
         
         await HandleTaskConfirmedAsync.Invoke(taskConfirmedMessage);

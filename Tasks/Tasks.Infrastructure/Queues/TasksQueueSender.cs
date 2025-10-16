@@ -11,19 +11,19 @@ namespace Tasks.Infrastructure.Queues;
 
 public class TasksQueueSender(IOptions<RabbitSettings> rabbitSettings) : ITasksQueueSender
 {
-    public async Task SendTaskStartedMessageAsync(TaskStartedMessage message)
+    public async Task SendTaskStartedMessageAsync(TaskStartedMessageDto messageDto)
     {
-        await SendMessageAsync(message, TasksQueueConstants.RoutingKeys.TaskStarted);
+        await SendMessageAsync(messageDto, TasksQueueConstants.RoutingKeys.TaskStarted);
     }
 
-    public async Task SendTaskStatusUpdatedMessageAsync(TaskStatusUpdatedMessage message)
+    public async Task SendTaskStatusUpdatedMessageAsync(TaskStatusUpdatedMessageDto messageDto)
     {
-        await SendMessageAsync(message, TasksQueueConstants.RoutingKeys.TaskStatusUpdated);
+        await SendMessageAsync(messageDto, TasksQueueConstants.RoutingKeys.TaskStatusUpdated);
     }
 
-    public async Task SendTaskConfirmedMessageAsync(TaskConfirmedMessage message)
+    public async Task SendTaskConfirmedMessageAsync(TaskConfirmedMessageDto messageDto)
     {
-        await SendMessageAsync(message, TasksQueueConstants.RoutingKeys.TaskConfirmed);
+        await SendMessageAsync(messageDto, TasksQueueConstants.RoutingKeys.TaskConfirmed);
     }
     
     private async Task SendMessageAsync(object payload, string routingKey)

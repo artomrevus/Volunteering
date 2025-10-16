@@ -14,6 +14,8 @@ public class TasksQueueConsumerHostedService(IServiceProvider serviceProvider) :
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+        
         using var scope = serviceProvider.CreateScope();
         _queueConsumer = scope.ServiceProvider.GetRequiredService<ITasksQueueConsumer>();
         
@@ -22,6 +24,7 @@ public class TasksQueueConsumerHostedService(IServiceProvider serviceProvider) :
         _queueConsumer.HandleTaskConfirmedAsync = HandleTaskConfirmedAsync;
 
         await _queueConsumer.StartConsumingAsync(stoppingToken);
+        
         await Task.Delay(Timeout.Infinite, stoppingToken);
     }
 
@@ -35,41 +38,7 @@ public class TasksQueueConsumerHostedService(IServiceProvider serviceProvider) :
         await base.StopAsync(cancellationToken);
     }
     
-    private async Task HandleTaskStartedAsync(TaskStartedMessage message)
-    {
-        const string subject = "Task started";
-        var body = 
-            $"Your task \"{message.TaskTitle}\" was started by volunteer.\n\n" +
-            $"You can view detailed information in your profile: " +
-            $"https://volunteering.frontend/profile/{message.MilitaryToNotifyId}";
-
-        await SendEmailAsync(message.MilitaryToNotifyId, subject, body);
-    }
-
-    private async Task HandleTaskStatusUpdatedAsync(TaskStatusUpdatedMessage message)
-    {
-        const string subject = "Task status updated";
-        var body = 
-            $"Your task \"{message.TaskTitle}\" status was updated by volunteer.\n\n" +
-            $"{message.OldTaskStatus} -> {message.NewTaskStatus}\n\n" +
-            $"You can view detailed information in your profile: " +
-            $"https://volunteering.frontend/profile/{message.MilitaryToNotifyId}";
-
-        await SendEmailAsync(message.MilitaryToNotifyId, subject, body);
-    }
-    
-    private async Task HandleTaskConfirmedAsync(TaskConfirmedMessage message)
-    {
-        const string subject = "Task confirmed";
-        var body = 
-            $"Task \"{message.TaskTitle}\" was confirmed by military unit.\n\n" +
-            $"You can view detailed information in your profile: " +
-            $"https://volunteering.frontend/profile/{message.VolunteerToNotifyId}";
-
-        await SendEmailAsync(message.VolunteerToNotifyId, subject, body);
-    }
-    
-    private async Task SendEmailAsync(string identityId, string subject, string body)
+    private async Task HandleTaskStartedAsync(TaskStartedMessageDto messageDto)
     {
         using var scope = serviceProvider.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
@@ -77,7 +46,7 @@ public class TasksQueueConsumerHostedService(IServiceProvider serviceProvider) :
         BindingDto binding;
         try
         {
-            var getBindingQuery = new GetBindingByIdentityIdQuery { IdentityId = identityId };
+            var getBindingQuery = new GetBindingByIdentityIdQuery { IdentityId = messageDto.MilitaryToNotifyId };
             binding = await mediator.Send(getBindingQuery);
         }
         catch (NotFoundException)
@@ -85,11 +54,62 @@ public class TasksQueueConsumerHostedService(IServiceProvider serviceProvider) :
             return;
         }
         
-        var sendEmailCommand = new SendEmailCommand
+        var sendEmailCommand = new SendTaskStartedEmailCommand
         {
             EmailTo = binding.Email,
-            Subject = subject,
-            Body = body,
+            TaskTitle = messageDto.TaskTitle,
+        };
+
+        await mediator.Send(sendEmailCommand);
+    }
+
+    private async Task HandleTaskStatusUpdatedAsync(TaskStatusUpdatedMessageDto messageDto)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        
+        BindingDto binding;
+        try
+        {
+            var getBindingQuery = new GetBindingByIdentityIdQuery { IdentityId = messageDto.MilitaryToNotifyId };
+            binding = await mediator.Send(getBindingQuery);
+        }
+        catch (NotFoundException)
+        {
+            return;
+        }
+        
+        var sendEmailCommand = new SendTaskStatusUpdatedEmailCommand
+        {
+            EmailTo = binding.Email,
+            TaskTitle = messageDto.TaskTitle,
+            OldTaskStatus = messageDto.OldTaskStatus,
+            NewTaskStatus = messageDto.NewTaskStatus
+        };
+
+        await mediator.Send(sendEmailCommand);
+    }
+    
+    private async Task HandleTaskConfirmedAsync(TaskConfirmedMessageDto messageDto)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        
+        BindingDto binding;
+        try
+        {
+            var getBindingQuery = new GetBindingByIdentityIdQuery { IdentityId = messageDto.VolunteerToNotifyId };
+            binding = await mediator.Send(getBindingQuery);
+        }
+        catch (NotFoundException)
+        {
+            return;
+        }
+        
+        var sendEmailCommand = new SendTaskConfirmedEmailCommand
+        {
+            EmailTo = binding.Email,
+            TaskTitle = messageDto.TaskTitle,
         };
 
         await mediator.Send(sendEmailCommand);

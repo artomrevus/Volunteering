@@ -5,9 +5,9 @@ namespace Tasks.Application.Interfaces.Queues;
 
 public interface ITasksQueueSender
 {
-    Task SendTaskStartedMessageAsync(TaskStartedMessage message);
+    Task SendTaskStartedMessageAsync(TaskStartedMessageDto messageDto);
     
-    Task SendTaskStatusUpdatedMessageAsync(TaskStatusUpdatedMessage message);
+    Task SendTaskStatusUpdatedMessageAsync(TaskStatusUpdatedMessageDto messageDto);
     
-    Task SendTaskConfirmedMessageAsync(TaskConfirmedMessage message);
+    Task SendTaskConfirmedMessageAsync(TaskConfirmedMessageDto messageDto);
 }

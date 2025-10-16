@@ -10,8 +10,10 @@ using Serilog;
 using Serilog.Events;
 using Tasks.API.Filters;
 using Tasks.Application.Commands;
+using Tasks.Application.Interfaces.Clients;
 using Tasks.Application.Interfaces.Queues;
 using Tasks.Application.Interfaces.Repositories;
+using Tasks.Infrastructure.Clients;
 using Tasks.Infrastructure.Configuration;
 using Tasks.Infrastructure.Persistence;
 using Tasks.Infrastructure.Queues;
@@ -140,4 +142,21 @@ public static class BuilderExtensions
         
         return builder;
     }
+    
+    public static WebApplicationBuilder AddHttpClients(this WebApplicationBuilder builder)
+    {
+        builder.Services.Configure<NotificationsMicroserviceSettings>(
+            builder.Configuration.GetSection("Microservices:Notifications"));
+
+        builder.Services.AddHttpClient("NotificationsMicroservice", httpClient =>
+            {
+                httpClient.BaseAddress = new Uri(builder.Configuration["Microservices:Notifications:BaseUrl"]!);
+                httpClient.Timeout = TimeSpan.FromSeconds(30);
+            });
+
+        builder.Services.AddTransient<INotificationsMicroserviceClient, NotificationsMicroserviceClient>();
+        
+        return builder;
+    }
+
 }
