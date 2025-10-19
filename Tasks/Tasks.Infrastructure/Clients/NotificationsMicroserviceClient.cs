@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tasks.Application.Dtos.Messages;
 using Tasks.Application.Interfaces.Clients;
-using Tasks.Infrastructure.Configuration;
+using Tasks.Common.Configuration;
 
 namespace Tasks.Infrastructure.Clients;
 

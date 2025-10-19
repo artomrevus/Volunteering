@@ -1,13 +1,16 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Notifications.Application.Exceptions;
 using Notifications.Application.Interfaces.Notifications;
+using Notifications.Common.Configuration;
 using Notifications.Domain.Entities;
 
 namespace Notifications.Application.Commands.Handlers;
 
 public class SendTaskStatusUpdatedEmailCommandHandler(
     IEmailSender emailSender,
+    IOptions<FrontendSettings> frontendSettings,
     ILogger<SendTaskStatusUpdatedEmailCommandHandler> logger)
     : IRequestHandler<SendTaskStatusUpdatedEmailCommand>
 {
@@ -17,7 +20,8 @@ public class SendTaskStatusUpdatedEmailCommandHandler(
         var body = 
             $"Your task \"{request.TaskTitle}\" status was updated by volunteer.\n\n" +
             $"{request.OldTaskStatus} -> {request.NewTaskStatus}\n\n" +
-            $"You can view detailed information in your profile: https://volunteering-frontend";
+            $"You can view detailed information in your profile: " +
+            $"{frontendSettings.Value.BaseUrl}/{frontendSettings.Value.Routes.Profile}";
         
         var emailMessage = new EmailMessageEntity(request.EmailTo, subject, body);
 

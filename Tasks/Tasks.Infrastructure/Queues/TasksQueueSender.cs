@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Tasks.Application.Dtos.Messages;
 using Tasks.Application.Interfaces.Queues;
-using Tasks.Infrastructure.Configuration;
+using Tasks.Common.Configuration;
 using Tasks.Infrastructure.Constants;
 
 namespace Tasks.Infrastructure.Queues;

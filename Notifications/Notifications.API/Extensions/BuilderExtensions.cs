@@ -8,7 +8,7 @@ using Notifications.Application.Commands;
 using Notifications.Application.Interfaces.Notifications;
 using Notifications.Application.Interfaces.Queues;
 using Notifications.Application.Interfaces.Repositories;
-using Notifications.Infrastructure.Configuration;
+using Notifications.Common.Configuration;
 using Notifications.Infrastructure.Notifications;
 using Notifications.Infrastructure.Persistence;
 using Notifications.Infrastructure.Queues;
@@ -158,6 +158,14 @@ public static class BuilderExtensions
         builder.Logging.AddOpenTelemetry(logging => logging
             .AddOtlpExporter()
         );
+        
+        return builder;
+    }
+    
+    public static WebApplicationBuilder AddFrontendSettings(this WebApplicationBuilder builder)
+    {
+        builder.Services.Configure<FrontendSettings>(
+            builder.Configuration.GetSection("Microservices:Frontend"));
         
         return builder;
     }

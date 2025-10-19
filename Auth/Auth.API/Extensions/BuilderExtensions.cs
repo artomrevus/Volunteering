@@ -3,7 +3,7 @@ using Auth.Application.Commands;
 using Auth.Application.Interfaces.Hashers;
 using Auth.Application.Interfaces.Repositories;
 using Auth.Application.Interfaces.Tokens;
-using Auth.Infrastructure.Configuration;
+using Auth.Common.Configuration;
 using Auth.Infrastructure.Hashers;
 using Auth.Infrastructure.Persistence;
 using Auth.Infrastructure.Repositories;

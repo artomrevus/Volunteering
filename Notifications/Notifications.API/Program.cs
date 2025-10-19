@@ -13,6 +13,7 @@ var app = builder
     .AddDbServices()
     .AddEmailServices()
     .AddQueueServices()
+    .AddFrontendSettings()
     .Build();
 
 // Configure the HTTP request pipeline.

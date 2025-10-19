@@ -1,4 +1,4 @@
-namespace Notifications.Infrastructure.Configuration;
+namespace Notifications.Common.Configuration;
 
 public class RabbitSettings
 {

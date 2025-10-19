@@ -1,4 +1,5 @@
 using Tasks.Application.Dtos;
+using Tasks.Application.Dtos.Tasks;
 using Tasks.Domain.Entities;
 
 namespace Tasks.Application.Mappers;

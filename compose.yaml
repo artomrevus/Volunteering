@@ -1,6 +1,6 @@
 ﻿version: '3.8'
 
-services:
+services:    
   telemetry-dashboard:
     image: mcr.microsoft.com/dotnet/nightly/aspire-dashboard:latest
     container_name: telemetry-dashboard
@@ -118,10 +118,22 @@ services:
       - OTEL_SERVICE_NAME=api-gateway
     depends_on:
       - mongodb
+      - telemetry-dashboard
       - auth-api
       - tasks-api
       - notifications-api
-      - telemetry-dashboard
+    networks:
+      - microservices-network
+        
+  frontend:
+    build:
+      context: ./Frontend/volunteering-ui
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "4200:8080"
+    depends_on:
+      - api-gateway
     networks:
       - microservices-network
 

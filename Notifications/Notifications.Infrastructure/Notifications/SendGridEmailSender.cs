@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using Notifications.Application.Interfaces.Notifications;
+using Notifications.Common.Configuration;
 using Notifications.Domain.Entities;
-using Notifications.Infrastructure.Configuration;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 

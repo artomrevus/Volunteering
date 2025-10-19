@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Tasks.Application.Dtos;
+using Tasks.Application.Dtos.Tasks;
 using Tasks.Application.Exceptions;
 using Tasks.Application.Interfaces.Repositories;
 using Tasks.Application.Mappers;

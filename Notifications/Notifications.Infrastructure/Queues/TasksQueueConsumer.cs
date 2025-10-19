@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Notifications.Application.Dtos.Messages;
 using Notifications.Application.Interfaces.Queues;
-using Notifications.Infrastructure.Configuration;
+using Notifications.Common.Configuration;
 using Notifications.Infrastructure.Constants;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;

@@ -1,4 +1,4 @@
-namespace Tasks.Infrastructure.Configuration;
+namespace Tasks.Common.Configuration;
 
 public class RabbitSettings
 {
