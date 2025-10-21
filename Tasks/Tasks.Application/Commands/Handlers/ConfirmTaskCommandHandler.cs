@@ -51,8 +51,8 @@ public class ConfirmTaskCommandHandler(
             TaskTitle = task.Title,
         };
         
-        //await queueSender.SendTaskConfirmedMessageAsync(message);
-        await notificationsClient.SendTaskConfirmedNotificationAsync(message);
+        await queueSender.SendTaskConfirmedMessageAsync(message);
+        //await notificationsClient.SendTaskConfirmedNotificationAsync(message);
         
         logger.LogInformation(
             "Task with id '{TaskId}' for military with id '{MilitaryId}' was confirmed successfully", 

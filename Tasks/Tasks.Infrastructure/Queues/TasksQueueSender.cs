@@ -9,25 +9,51 @@ using Tasks.Infrastructure.Constants;
 
 namespace Tasks.Infrastructure.Queues;
 
-public class TasksQueueSender(IOptions<RabbitSettings> rabbitSettings) : ITasksQueueSender
+public class TasksQueueSender(IOptions<RabbitSettings> rabbitSettings) : ITasksQueueSender, IAsyncDisposable, IDisposable
 {
+    private IConnection? _connection;
+    private IChannel? _channel;
+    
     public async Task SendTaskStartedMessageAsync(TaskStartedMessageDto messageDto)
     {
-        await SendMessageAsync(messageDto, TasksQueueConstants.RoutingKeys.TaskStarted);
+        await SendMessageAsync(messageDto, TasksQueueConstants.TaskStartedKey);
     }
 
     public async Task SendTaskStatusUpdatedMessageAsync(TaskStatusUpdatedMessageDto messageDto)
     {
-        await SendMessageAsync(messageDto, TasksQueueConstants.RoutingKeys.TaskStatusUpdated);
+        await SendMessageAsync(messageDto, TasksQueueConstants.TaskStatusKey);
     }
 
     public async Task SendTaskConfirmedMessageAsync(TaskConfirmedMessageDto messageDto)
     {
-        await SendMessageAsync(messageDto, TasksQueueConstants.RoutingKeys.TaskConfirmed);
+        await SendMessageAsync(messageDto, TasksQueueConstants.TaskConfirmedKey);
     }
-    
+
     private async Task SendMessageAsync(object payload, string routingKey)
     {
+        await SetupChannelAsync();
+        
+        if (_channel is null)
+        {
+            throw new InvalidOperationException("Channel not initialized");
+        }
+        
+        var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload));
+
+        await _channel.BasicPublishAsync(
+            exchange: TasksQueueConstants.Exchange,
+            routingKey: routingKey,
+            body: body
+        );
+    }
+    
+    private async Task SetupChannelAsync()
+    {
+        if (_channel is not null)
+        {
+            return;
+        }
+        
         var factory = new ConnectionFactory
         {
             HostName = rabbitSettings.Value.HostName,
@@ -36,31 +62,46 @@ public class TasksQueueSender(IOptions<RabbitSettings> rabbitSettings) : ITasksQ
             Password = rabbitSettings.Value.Password,
         };
 
-        await using var connection = await factory.CreateConnectionAsync(); 
-        await using var channel = await connection.CreateChannelAsync();
+        _connection = await factory.CreateConnectionAsync(); 
+        _channel = await _connection.CreateChannelAsync();
 
-        await channel.ExchangeDeclareAsync(
+        await _channel.ExchangeDeclareAsync(
             exchange: TasksQueueConstants.Exchange,
             ExchangeType.Topic,
             durable: true);
         
-        await channel.QueueDeclareAsync(
+        await _channel.QueueDeclareAsync(
             queue: TasksQueueConstants.Queue, 
             durable: true, 
             exclusive: false, 
             autoDelete: false);
         
-        await channel.QueueBindAsync(
+        await _channel.QueueBindAsync(
             queue: TasksQueueConstants.Queue,
             exchange: TasksQueueConstants.Exchange, 
-            routingKey: routingKey);
-        
-        var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload));
+            routingKey: TasksQueueConstants.TaskTopicKey);
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (_channel is not null)
+        {
+            await _channel.CloseAsync();
+        }
 
-        await channel.BasicPublishAsync(
-            exchange: TasksQueueConstants.Exchange,
-            routingKey: routingKey,
-            body: body
-        );
+        if (_connection is not null)
+        {
+            await _connection.CloseAsync();
+        }
+        
+        _channel?.Dispose();
+        _connection?.Dispose();
+        
+        GC.SuppressFinalize(this);
+    }
+    
+    public void Dispose()
+    {
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
     }
 }

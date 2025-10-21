@@ -41,5 +41,4 @@ public class NotificationsMicroserviceClient(
                 response.StatusCode);
         }
     }
-
 }
